@@ -148,11 +148,17 @@ Write to vault as `sg plex` (plex group ownership required).
 
 ## Also Pending (separate session)
 
-- **discography-finder: Plex artist lookup broken** *(Friday 2026-03-20 — high priority)*
-  - `plex_get_albums()` returns empty even when artist is confirmed present in Plex
-  - Already fixed: symlink resolution, inline comment stripping, title-filter → local match
-  - Still failing — needs deeper debug of what Plex API is actually returning
-  - Likely next step: add temporary logging of raw API response to diagnose
+- **discography-finder: Plex album matching broken** *(Friday 2026-03-20 — high priority)*
+  - Fixed so far: symlink resolution, inline comment stripping, title-filter → local artist match
+  - Current state: Plex connection works and returns albums, but 0 match against MusicBrainz titles
+  - Likely cause: album title format differences between Plex tags and MusicBrainz (e.g. deluxe editions, punctuation, subtitles)
+  - Next step: add a `--debug-plex` flag or temp logging to print the raw album titles Plex returns for the artist
+
+- **End-to-end test pass on all tools** *(Friday 2026-03-20)*
+  - discography-finder: `check`, `search`, `tui`, beets source, export CSV
+  - plex_rescan.py: scan all, scan by name, `--list`
+  - zfs_health_reporter.py: dry run, `--no-email`, confirm SMTP config parses cleanly
+  - movie-management-scripts generally: confirm all three scripts work with the unified config.yaml symlink after today's fixes
 
 - **music-quality** — scan → analyze → upgrades → report
   - Repo: github.com/lincoln7711/music-quality
