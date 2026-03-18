@@ -148,6 +148,12 @@ Write to vault as `sg plex` (plex group ownership required).
 
 ## Also Pending (separate session)
 
+- **discography-finder: Plex artist lookup broken** *(Friday 2026-03-20 — high priority)*
+  - `plex_get_albums()` returns empty even when artist is confirmed present in Plex
+  - Already fixed: symlink resolution, inline comment stripping, title-filter → local match
+  - Still failing — needs deeper debug of what Plex API is actually returning
+  - Likely next step: add temporary logging of raw API response to diagnose
+
 - **music-quality** — scan → analyze → upgrades → report
   - Repo: github.com/lincoln7711/music-quality
   - Run after music-adder rebuild is done
