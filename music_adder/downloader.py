@@ -25,12 +25,24 @@ def download(url: str, incoming_base: Path) -> Path:
         "--audio-format", "opus",
         "-o", str(staging_dir / "%(playlist_index)s %(title)s.%(ext)s"),
         "--yes-playlist",
+        "--ignore-errors",
         url,
     ]
 
     result = subprocess.run(cmd)
     if result.returncode != 0:
-        raise RuntimeError(f"yt-dlp exited with code {result.returncode}")
+        # With --ignore-errors, yt-dlp returns non-zero if any video failed but may
+        # have still downloaded others. Only abort if nothing landed in staging.
+        audio_files = [
+            f for f in staging_dir.iterdir()
+            if f.is_file() and f.suffix.lower() in AUDIO_EXTENSIONS
+        ]
+        if not audio_files:
+            raise RuntimeError(f"yt-dlp exited with code {result.returncode}")
+        console.print(
+            f"[yellow]yt-dlp exited {result.returncode} (some videos unavailable) "
+            f"— {len(audio_files)} file(s) downloaded, continuing[/yellow]"
+        )
 
     return staging_dir
 

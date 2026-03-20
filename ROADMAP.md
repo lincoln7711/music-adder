@@ -1,6 +1,6 @@
 # music-adder — Roadmap
 
-**Status:** v0.3.0 SHIPPED 2026-03-20. Tier-1 batches complete. becca-music-adder added. See lessons learned below.
+**Status:** v0.3.1 SHIPPED 2026-03-20. Partial playlist fix. See lessons learned below.
 
 ---
 
@@ -153,6 +153,11 @@ Write to vault as `sg plex` (plex group ownership required).
 - Singles deprioritized over albums/EPs
 - Expanded title skip words (compilation, best of, warped tour, etc.)
 
+### v0.3.1 (2026-03-20)
+- `--ignore-errors` added to yt-dlp call — playlists with unavailable/private/age-restricted
+  videos no longer abort; remaining tracks are downloaded and processed normally
+- Exit code handling updated: non-zero exit only raises if no files landed in staging
+
 ### v0.3.0 (2026-03-20)
 - `becca-music-adder` — separate entrypoint for /vault/media/becca_music
   - Same pipeline, different library + incoming paths
@@ -165,6 +170,7 @@ Write to vault as `sg plex` (plex group ownership required).
 ## What's Next
 
 - **Tier-2 artists** — remaining gaps from missing.md not yet downloaded
-- **music-quality** — scan → analyze → upgrades → report
+- **music-quality** — SHIPPED 2026-03-20. First full scan complete.
+  - 7,720 files, 219 confirmed transcodes, 0 lossless
   - Repo: github.com/lincoln7711/music-quality
-  - Roadmap written, not started
+  - Collection analysis and upgrade decisions ongoing (non-coding)

@@ -146,7 +146,7 @@ export ACOUSTID_KEY=YOUR_KEY_HERE
 
 - **Fan playlists**: Fan-uploaded full-album playlists sometimes include non-album videos (intros, live clips from other shows, algorithm-suggested tracks). The duration filter catches most of these (< 60s or > 20min), but edge cases still land in `_review/`.
 - **MusicBrainz release selection**: Prefers the earliest clean studio album. May occasionally pick an EP or single if the track was released there first. Check `_review/` after large batches.
-- **Age-restricted videos**: yt-dlp skips these with an error. They won't appear in staging.
+- **Age-restricted / unavailable videos**: yt-dlp skips these and continues. The remaining tracks in the playlist are still downloaded and processed.
 - **The Pronoia Sessions (Atreyu)**: The official playlist only had 1 video available at time of download.
 - **MEDZ (The Used) track 02**: Age-restricted, skipped by yt-dlp.
 
@@ -180,7 +180,12 @@ MUSIC_ADDER_LIBRARY=/some/other/path becca-music-adder add <url>
 
 ## Logs
 
-Operation log: `/vault/media/incoming/music_adder.log`
+Logging is on by default. Every file disposition is written automatically.
+
+| Tool | Log path |
+|------|----------|
+| `music-adder` | `/vault/media/incoming/music_adder.log` |
+| `becca-music-adder` | `/vault/media/becca_incoming/music_adder.log` |
 
 Each line is one of:
 ```
@@ -188,4 +193,9 @@ Each line is one of:
 [timestamp] SKIP   filename (already at /full/dest/path)
 [timestamp] REVIEW filename → /review/path
 [timestamp] ERROR  url: reason
+```
+
+To preserve color output and log to a file simultaneously:
+```bash
+FORCE_COLOR=1 music-adder batch ~/my_urls.txt 2>&1 | tee ~/run.log
 ```
