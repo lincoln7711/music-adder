@@ -12,7 +12,7 @@ from rich.table import Table
 from . import config
 from .downloader import download, find_audio_files
 from .mover import destination, move_to_library, move_to_review
-from .tagger import identify_and_tag
+from .tagger import identify_and_tag, read_existing_tags
 
 console = Console()
 
@@ -27,16 +27,18 @@ def _log(message: str) -> None:
         pass
 
 
-def process_staging_dir(staging_dir: Path) -> dict:
+def process_staging_dir(staging_dir: Path, honor_tags: bool = False) -> dict:
     """
     Tag and move every audio file in staging_dir.
     Returns a summary dict: {moved: int, skipped: int, review: int}
+
+    If honor_tags is True, use existing file tags instead of fingerprinting.
     """
     api_key = config.acoustid_key()
     library_root = config.library_path()
     review_root = config.review_path()
 
-    if not api_key:
+    if not honor_tags and not api_key:
         console.print(
             "[yellow]No AcoustID API key — fingerprinting disabled. "
             "Add acoustid.api_key to config.yaml or set ACOUSTID_KEY env var.[/yellow]"
@@ -54,7 +56,14 @@ def process_staging_dir(staging_dir: Path) -> dict:
     for f in audio_files:
         console.print(f"[bold]{f.name}[/bold]")
 
-        info = identify_and_tag(f, api_key)
+        if honor_tags:
+            info = read_existing_tags(f)
+            if info:
+                console.print(f"  [dim]using existing tags[/dim]")
+            else:
+                console.print(f"  [yellow]no usable tags — skipping[/yellow]")
+        else:
+            info = identify_and_tag(f, api_key)
 
         if info:
             already = destination(info, f, library_root).exists()
@@ -118,13 +127,25 @@ def cmd_add(target: str) -> None:
 
     if target.startswith("http://") or target.startswith("https://"):
         staging_dir = download(target, incoming)
+        honor_tags = False
     else:
         staging_dir = Path(target).expanduser().resolve()
         if not staging_dir.exists():
             console.print(f"[red]Path not found: {staging_dir}[/red]")
             return
+        console.print(
+            "\n[bold]Local folder detected.[/bold] How should files be processed?\n"
+            "  [bold cyan][t][/bold cyan] Honor existing tags (e.g. tagged in MusicBrainz Picard)\n"
+            "  [bold cyan][i][/bold cyan] Re-identify via AcoustID + MusicBrainz\n"
+        )
+        while True:
+            choice = console.input("[bold]Choice [t/i]:[/bold] ").strip().lower()
+            if choice in ("t", "i"):
+                break
+            console.print("[yellow]Please enter t or i.[/yellow]")
+        honor_tags = choice == "t"
 
-    result = process_staging_dir(staging_dir)
+    result = process_staging_dir(staging_dir, honor_tags=honor_tags)
     _print_summary(result)
 
 

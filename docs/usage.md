@@ -20,7 +20,20 @@ Accepts:
 - A YouTube URL (single video or full playlist — both work the same way)
 - A local folder path (skips download, re-processes files already on disk)
 
-The local path option is how you re-process files from the review queue after tagging them manually in MusicBrainz Picard.
+When a local folder is given, you'll be prompted to choose:
+
+```
+Local folder detected. How should files be processed?
+  [t] Honor existing tags (e.g. tagged in MusicBrainz Picard)
+  [i] Re-identify via AcoustID + MusicBrainz
+
+Choice [t/i]:
+```
+
+- **`t` — honor tags**: reads artist/title/album directly from the file's existing tags and moves accordingly. Use this after tagging files in MusicBrainz Picard.
+- **`i` — re-identify**: runs the full AcoustID fingerprint + MusicBrainz lookup pipeline, overwriting any existing tags.
+
+This is how you re-process files from the review queue after tagging them manually in MusicBrainz Picard — choose `t` so Picard's tags are respected.
 
 ---
 
@@ -71,6 +84,7 @@ Shows all files that couldn't be identified, with their `.note` files containing
 1. Open the file in MusicBrainz Picard
 2. Look up and save the correct tags
 3. Re-run: `music-adder add /vault/media/incoming/_review/<staging-dir>/`
+4. When prompted, choose **`t`** to honor the tags you just saved
 
 ---
 

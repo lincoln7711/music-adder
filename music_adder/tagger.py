@@ -38,16 +38,41 @@ class TrackInfo:
 # AcoustID path
 # ---------------------------------------------------------------------------
 
-def _mb_recording_lookup(mbid: str) -> TrackInfo | None:
-    try:
-        data = musicbrainzngs.get_recording_by_id(
-            mbid,
-            includes=["artists", "releases"],
-        )
-    except musicbrainzngs.WebServiceError:
-        return None
+def _mb_recording_lookup(
+    mbid: str,
+    hint_title: str | None = None,
+    hint_artist: str | None = None,
+) -> TrackInfo | None:
+    """Look up a recording by MBID.
 
-    rec = data.get("recording", {})
+    Prefer search_recordings when hint_title/hint_artist are available because
+    the search endpoint embeds release-group primary-type in each release;
+    get_recording_by_id with inc=releases does not.
+    """
+    rec: dict | None = None
+
+    if hint_title and hint_artist:
+        try:
+            results = musicbrainzngs.search_recordings(
+                recording=hint_title, artist=hint_artist, limit=20
+            )
+            for r in results.get("recording-list", []):
+                if r.get("id") == mbid:
+                    rec = r
+                    break
+        except musicbrainzngs.WebServiceError:
+            pass
+
+    if rec is None:
+        try:
+            data = musicbrainzngs.get_recording_by_id(
+                mbid,
+                includes=["artists", "releases"],
+            )
+        except musicbrainzngs.WebServiceError:
+            return None
+        rec = data.get("recording", {})
+
     title = rec.get("title", "").strip()
     if not title:
         return None
@@ -86,7 +111,7 @@ def _acoustid_lookup(path: Path, api_key: str) -> TrackInfo | None:
             break
         if not rid:
             continue
-        info = _mb_recording_lookup(rid)
+        info = _mb_recording_lookup(rid, hint_title=_title, hint_artist=_artist)
         if info:
             return info
 
@@ -186,6 +211,8 @@ def _extract_year(date_str: str) -> str | None:
 _TITLE_SKIP_WORDS = {
     "instrumental", "sampler", "demo", "promo", "karaoke",
     "live", "acoustic", "unplugged", "remix", "remixes",
+    "compilation", "best of", "greatest hits", "warped tour",
+    "all areas", "tour compilation",
 }
 
 
@@ -195,6 +222,12 @@ def _release_title_is_clean(r: dict) -> bool:
     return not any(w in title or w in rg_title for w in _TITLE_SKIP_WORDS)
 
 
+def _rg_primary_type(r: dict) -> str:
+    """Return release-group primary type, checking both 'primary-type' and 'type' keys."""
+    rg = r.get("release-group", {})
+    return rg.get("primary-type") or rg.get("type") or ""
+
+
 def _pick_best_release(releases: list) -> dict | None:
     if not releases:
         return None
@@ -202,21 +235,30 @@ def _pick_best_release(releases: list) -> dict | None:
     secondary_bad = {"Live", "Compilation", "Remix", "DJ-mix", "Mixtape/Street"}
 
     def _is_clean_album(r: dict) -> bool:
-        rg = r.get("release-group", {})
-        if rg.get("primary-type") != "Album":
+        if _rg_primary_type(r) != "Album":
             return False
+        rg = r.get("release-group", {})
+        if any(s in secondary_bad for s in rg.get("secondary-type-list", [])):
+            return False
+        return _release_title_is_clean(r)
+
+    def _is_clean_non_single(r: dict) -> bool:
+        """EP or other non-Single, non-compilation release — better than a single."""
+        if _rg_primary_type(r) == "Single":
+            return False
+        rg = r.get("release-group", {})
         if any(s in secondary_bad for s in rg.get("secondary-type-list", [])):
             return False
         return _release_title_is_clean(r)
 
     def _is_any_clean(r: dict) -> bool:
-        secondary = r.get("release-group", {}).get("secondary-type-list", [])
-        if any(s in secondary_bad for s in secondary):
+        rg = r.get("release-group", {})
+        if any(s in secondary_bad for s in rg.get("secondary-type-list", [])):
             return False
         return _release_title_is_clean(r)
 
-    # Preference order: clean album > any clean release > anything
-    for pool_fn in (_is_clean_album, _is_any_clean, lambda r: True):
+    # Preference order: clean album > clean non-single (EP etc.) > any clean > anything
+    for pool_fn in (_is_clean_album, _is_clean_non_single, _is_any_clean, lambda r: True):
         pool = [r for r in releases if pool_fn(r)]
         if pool:
             dated = [r for r in pool if r.get("date")]
@@ -225,6 +267,40 @@ def _pick_best_release(releases: list) -> dict | None:
             return pool[0]
 
     return releases[0]
+
+
+# ---------------------------------------------------------------------------
+# Read existing tags
+# ---------------------------------------------------------------------------
+
+def read_existing_tags(path: Path) -> TrackInfo | None:
+    """
+    Build a TrackInfo from tags already on the file (e.g. set by MusicBrainz Picard).
+    Returns None if artist or title are missing.
+    """
+    try:
+        f = mutagen.File(str(path), easy=True)
+    except Exception:
+        return None
+    if f is None:
+        return None
+
+    def _get(key: str) -> str | None:
+        vals = f.get(key)
+        return vals[0].strip() if vals else None
+
+    artist = _get("artist")
+    title = _get("title")
+    if not artist or not title:
+        return None
+
+    return TrackInfo(
+        artist=artist,
+        title=title,
+        album=_get("album"),
+        album_artist=_get("albumartist"),
+        year=_get("date"),
+    )
 
 
 # ---------------------------------------------------------------------------
