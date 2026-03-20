@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 from .pipeline import cmd_add, cmd_batch, cmd_status, cmd_review
@@ -34,6 +35,12 @@ def main() -> None:
     except KeyboardInterrupt:
         print("\nAborted.")
         sys.exit(1)
+
+
+def becca_main() -> None:
+    os.environ.setdefault("MUSIC_ADDER_LIBRARY", "/vault/media/becca_music")
+    os.environ.setdefault("MUSIC_ADDER_INCOMING", "/vault/media/becca_incoming")
+    main()
 
 
 if __name__ == "__main__":

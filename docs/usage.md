@@ -152,6 +152,32 @@ export ACOUSTID_KEY=YOUR_KEY_HERE
 
 ---
 
+## becca-music-adder
+
+A separate entrypoint with identical behaviour but pointed at Becca's library:
+
+| Path | Purpose |
+|------|---------|
+| `/vault/media/becca_music/` | Library root |
+| `/vault/media/becca_incoming/` | Staging area for downloads |
+| `/vault/media/becca_incoming/_review/` | Files needing manual metadata |
+
+Usage is identical — just substitute `becca-music-adder` for `music-adder`:
+
+```bash
+becca-music-adder add "https://www.youtube.com/playlist?list=..."
+becca-music-adder batch ~/some_url_list.txt
+becca-music-adder status
+becca-music-adder review
+```
+
+The paths can be overridden at runtime via env vars if needed:
+```bash
+MUSIC_ADDER_LIBRARY=/some/other/path becca-music-adder add <url>
+```
+
+---
+
 ## Logs
 
 Operation log: `/vault/media/incoming/music_adder.log`

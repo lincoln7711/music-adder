@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "music-adder"
-version = "0.1.0"
+version = "0.3.0"
 requires-python = ">=3.10"
 dependencies = [
     "yt-dlp",
@@ -17,3 +17,4 @@ dependencies = [
 
 [project.scripts]
 music-adder = "music_adder.cli:main"
+becca-music-adder = "music_adder.cli:becca_main"

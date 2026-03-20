@@ -1,6 +1,6 @@
 # music-adder — Roadmap
 
-**Status:** v0.2.0 SHIPPED 2026-03-19. Tier-1 batches complete. See lessons learned below.
+**Status:** v0.3.0 SHIPPED 2026-03-20. Tier-1 batches complete. becca-music-adder added. See lessons learned below.
 
 ---
 
@@ -152,6 +152,13 @@ Write to vault as `sg plex` (plex group ownership required).
   get_recording_by_id does not)
 - Singles deprioritized over albums/EPs
 - Expanded title skip words (compilation, best of, warped tour, etc.)
+
+### v0.3.0 (2026-03-20)
+- `becca-music-adder` — separate entrypoint for /vault/media/becca_music
+  - Same pipeline, different library + incoming paths
+  - `MUSIC_ADDER_LIBRARY` / `MUSIC_ADDER_INCOMING` env vars for path overrides
+- Fixed Rich markup bug: `[t]`, `[i]`, `[t/i]` in prompts were consumed as markup
+  tags and silently dropped — escaped with `\[`
 
 ---
 

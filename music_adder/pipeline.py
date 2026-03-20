@@ -135,11 +135,11 @@ def cmd_add(target: str) -> None:
             return
         console.print(
             "\n[bold]Local folder detected.[/bold] How should files be processed?\n"
-            "  [bold cyan][t][/bold cyan] Honor existing tags (e.g. tagged in MusicBrainz Picard)\n"
-            "  [bold cyan][i][/bold cyan] Re-identify via AcoustID + MusicBrainz\n"
+            "  [bold cyan]\\[t][/bold cyan] Honor existing tags (e.g. tagged in MusicBrainz Picard)\n"
+            "  [bold cyan]\\[i][/bold cyan] Re-identify via AcoustID + MusicBrainz\n"
         )
         while True:
-            choice = console.input("[bold]Choice [t/i]:[/bold] ").strip().lower()
+            choice = console.input("[bold]Choice \\[t/i]:[/bold] ").strip().lower()
             if choice in ("t", "i"):
                 break
             console.print("[yellow]Please enter t or i.[/yellow]")

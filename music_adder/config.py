@@ -20,10 +20,16 @@ def load() -> dict:
 
 
 def library_path() -> Path:
+    override = os.environ.get("MUSIC_ADDER_LIBRARY")
+    if override:
+        return Path(override)
     return Path(load()["library"]["path"])
 
 
 def incoming_path() -> Path:
+    override = os.environ.get("MUSIC_ADDER_INCOMING")
+    if override:
+        return Path(override)
     return library_path().parent / "incoming"
 
 
