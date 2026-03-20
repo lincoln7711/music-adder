@@ -1,6 +1,6 @@
-# music-adder — Rebuild Roadmap
+# music-adder — Roadmap
 
-**Status:** Planning. Previous version scrapped 2026-03-17. See lessons learned below.
+**Status:** v0.2.0 SHIPPED 2026-03-19. Tier-1 batches complete. See lessons learned below.
 
 ---
 
@@ -15,12 +15,13 @@ No beets. No database. No match thresholds.
 ## Command Interface
 
 ```bash
-music-adder add <url>        # single track or full playlist
+music-adder add <url|path>   # single track or full playlist, or local folder
+music-adder batch <file>     # file of URLs, one per line (# comments ok)
 music-adder status           # library file count + review queue count
 music-adder review           # show review queue with instructions
 ```
 
-That's it. Three commands. No watch mode, no batch flags, no email.
+Local folder path prompts [t/i]: honor existing tags or re-identify via AcoustID.
 
 ---
 
@@ -135,31 +136,28 @@ Write to vault as `sg plex` (plex group ownership required).
 
 ---
 
-## Implementation Order
+## Implementation History
 
+### v0.1.0 (2026-03-19)
 1. `cmd_add` — core pipeline (download → tag → move)
 2. `cmd_status` — file count in library + review queue count
 3. `cmd_review` — display review queue with instructions
-4. Local path support in `cmd_add` (for re-processing Picard-tagged files)
-5. Docs (README + docs/usage.md)
-6. Test: single track URL, playlist URL, local folder, unidentifiable track
+4. Local path support in `cmd_add`
+5. `cmd_batch` — file of URLs
+6. Docs (README + docs/usage.md)
+
+### v0.2.0 (2026-03-19)
+- `add <local-path>` prompts [t/i]: honor existing tags or re-identify
+- Release picker switched to search_recordings (returns release-group primary-type;
+  get_recording_by_id does not)
+- Singles deprioritized over albums/EPs
+- Expanded title skip words (compilation, best of, warped tour, etc.)
 
 ---
 
-## Also Pending (separate session)
+## What's Next
 
-- **discography-finder: Plex album matching broken** *(Friday 2026-03-20 — high priority)*
-  - Fixed so far: symlink resolution, inline comment stripping, title-filter → local artist match
-  - Current state: Plex connection works and returns albums, but 0 match against MusicBrainz titles
-  - Likely cause: album title format differences between Plex tags and MusicBrainz (e.g. deluxe editions, punctuation, subtitles)
-  - Next step: add a `--debug-plex` flag or temp logging to print the raw album titles Plex returns for the artist
-
-- **End-to-end test pass on all tools** *(Friday 2026-03-20)*
-  - discography-finder: `check`, `search`, `tui`, beets source, export CSV
-  - plex_rescan.py: scan all, scan by name, `--list`
-  - zfs_health_reporter.py: dry run, `--no-email`, confirm SMTP config parses cleanly
-  - movie-management-scripts generally: confirm all three scripts work with the unified config.yaml symlink after today's fixes
-
+- **Tier-2 artists** — remaining gaps from missing.md not yet downloaded
 - **music-quality** — scan → analyze → upgrades → report
   - Repo: github.com/lincoln7711/music-quality
-  - Run after music-adder rebuild is done
+  - Roadmap written, not started
