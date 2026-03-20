@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "music-adder"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "yt-dlp",
+    "pyacoustid",
+    "musicbrainzngs",
+    "mutagen",
+    "rich",
+    "pyyaml",
+]
+
+[project.scripts]
+music-adder = "music_adder.cli:main"
