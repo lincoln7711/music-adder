@@ -51,6 +51,9 @@ The batch file format:
 - Lines starting with `#` are ignored (use for artist/album labels)
 - Blank lines are ignored
 
+Exit status: `batch` exits 1 if more than half the URLs fail (nothing downloaded), so a
+scheduler can tell a systemic failure (e.g. yt-dlp blocked) from a few unavailable videos.
+
 Example batch file:
 ```
 # The Offspring

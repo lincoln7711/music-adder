@@ -149,11 +149,16 @@ def cmd_add(target: str) -> None:
     _print_summary(result)
 
 
-def cmd_batch(file: str) -> None:
+def cmd_batch(file: str) -> bool:
+    """
+    Returns False if the batch should be treated as failed: the file is missing,
+    or more than half the URLs produced nothing (usually a systemic problem like
+    yt-dlp being blocked, rather than a few unavailable videos).
+    """
     batch_file = Path(file).expanduser().resolve()
     if not batch_file.exists():
         console.print(f"[red]File not found: {batch_file}[/red]")
-        return
+        return False
 
     urls = []
     with open(batch_file) as f:
@@ -165,7 +170,7 @@ def cmd_batch(file: str) -> None:
 
     if not urls:
         console.print("[yellow]No URLs found in file.[/yellow]")
-        return
+        return True
 
     console.print(f"[bold]Batch mode:[/bold] {len(urls)} URL(s)\n")
 
@@ -173,6 +178,7 @@ def cmd_batch(file: str) -> None:
     incoming = config.incoming_path()
     incoming.mkdir(parents=True, exist_ok=True)
 
+    failed = 0
     for i, url in enumerate(urls, 1):
         console.rule(f"[bold]{i}/{len(urls)}[/bold]")
         try:
@@ -183,9 +189,18 @@ def cmd_batch(file: str) -> None:
         except Exception as e:
             console.print(f"[red]Failed: {e}[/red]")
             _log(f"ERROR {url}: {e}")
+            failed += 1
 
     console.rule("[bold]Batch complete[/bold]")
     _print_summary(totals)
+
+    if failed * 2 > len(urls):
+        console.print(f"[bold red]{failed}/{len(urls)} URL(s) failed — treating batch as failed.[/bold red]")
+        _log(f"BATCH FAILED {batch_file.name}: {failed}/{len(urls)} URL(s) failed")
+        return False
+    if failed:
+        console.print(f"[yellow]{failed}/{len(urls)} URL(s) failed.[/yellow]")
+    return True
 
 
 def cmd_status() -> None:

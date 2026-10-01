@@ -1,6 +1,6 @@
 # music-adder — Roadmap
 
-**Status:** v0.3.1 SHIPPED 2026-03-20. Partial playlist fix. See lessons learned below.
+**Status:** v0.3.2 SHIPPED 2026-10-01. Batch exit code reflects failures. See lessons learned below.
 
 ---
 
@@ -152,6 +152,13 @@ Write to vault as `sg plex` (plex group ownership required).
   get_recording_by_id does not)
 - Singles deprioritized over albums/EPs
 - Expanded title skip words (compilation, best of, warped tour, etc.)
+
+### v0.3.2 (2026-10-01)
+- `batch` exits 1 when more than half its URLs fail (file missing also exits 1)
+  - Previously always exited 0, so a stale yt-dlp getting HTTP 403 on every video
+    (Sept 2026) let the scheduler mark 9 playlists done with ~0 tracks downloaded
+  - Fewer than half failing still exits 0, with a warning showing the count
+  - `BATCH FAILED <file>: N/M URL(s) failed` written to the log
 
 ### v0.3.1 (2026-03-20)
 - `--ignore-errors` added to yt-dlp call — playlists with unavailable/private/age-restricted

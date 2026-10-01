@@ -27,7 +27,8 @@ def main() -> None:
         if args.command == "add":
             cmd_add(args.target)
         elif args.command == "batch":
-            cmd_batch(args.file)
+            if not cmd_batch(args.file):
+                sys.exit(1)
         elif args.command == "status":
             cmd_status()
         elif args.command == "review":
